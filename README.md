@@ -1,4 +1,4 @@
-![Twitter Logo](twitter-logo.png)
+![Twitter Logo](twitter-logo.jpg)
 
 ## About
 Twitter Application built with React, Typescript and server-side Next.js.
