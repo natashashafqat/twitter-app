@@ -1,4 +1,4 @@
-![Twitter Logo](twitter-logo.jpg)
+![Twitter Logo](./src/images/twitter-logo.jpg)
 
 ## About
 Twitter Application built with React, Typescript and server-side Next.js.
