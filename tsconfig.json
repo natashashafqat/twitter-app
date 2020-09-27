@@ -17,9 +17,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "preserve"
   },
   "include": [
-    "src"
+    "pages",
+    "src", "tests/App.test.js"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
