@@ -2,9 +2,9 @@
 Twitter Application built with React, Typescript and server-side Next.js.
 
 ## Scripts
-### `npm start`
+### `npm dev`
 
-Runs the app in the development mode.<br />
+Runs the app using Next.js.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.<br />
