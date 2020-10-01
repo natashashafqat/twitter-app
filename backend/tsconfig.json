@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
+    "module": "esnext",
+    "rootDir": "./",
+    "outDir": "./build",
+    "esModuleInterop": true,
+    "strict": true,
     "lib": [
       "dom",
       "dom.iterable",
@@ -8,22 +13,14 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve"
+    "jsx": "react"
   },
   "include": [
-    "pages",
-    "src", "tests/App.test.js"
-  ],
-  "exclude": [
-    "node_modules"
+    "src"
   ]
 }
