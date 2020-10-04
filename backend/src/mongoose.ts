@@ -1,8 +1,7 @@
-var mongoose = require('mongoose'),
-  Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+const Schema = mongoose.Schema;
 
-module.exports = function () {
-
+export const Mongoose = () => {
   const db = mongoose.connect('mongodb://localhost:27017/twitter-demo');
 
   const UserSchema = new Schema({
@@ -50,6 +49,5 @@ module.exports = function () {
   };
 
   mongoose.model('User', UserSchema);
-
   return db;
-};
+}

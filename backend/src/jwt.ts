@@ -1,34 +1,61 @@
 import * as jwt from 'jsonwebtoken';
-const expressJWT = require('express-jwt');
-import * as express from 'express';
+import expressJwt from 'express-jwt';
+import { Mongoose } from './mongoose';
+Mongoose();
 
-export function createToken(auth: any) {
-  return jwt.sign({
-    id: auth.id
-  },
-  'my-secret',
-  {
-    expiresIn: 60 * 120
-  });
-};
+export class Jwt {
+  static User = require('mongoose').model('User');
 
-export function generateToken(req: any, res: any, next: any) {
-  req.token = createToken(req.auth);
-  return next();
-};
+  static createToken = (auth: any) => {
+    return jwt.sign({
+      id: auth.id
+    }, 'my-secret',
+    {
+      expiresIn: 60 * 120
+    });
+  };
 
-export function sendToken(req: any, res: express.Response) {
-  res.setHeader('x-auth-token', req.token);
-  return res.status(200).send(JSON.stringify(req.user));
-};
+  static generateToken = (req: any, res: any, next: any) => {
+    req.token = Jwt.createToken(req.auth);
+    return next();
+  };
 
-export const authenticate = expressJWT({
-  secret: 'my-secret',
-  requestProperty: 'auth',
-  getToken: (req: any) => {
-    if (req.headers['x-auth-tokenn']) {
-      return req.headers['x-auth-token'];
-    }
-    return null;
-  }
-});
+  static sendToken = (req: any, res: any) => {
+    res.setHeader('x-auth-token', req.token);
+    return res.status(200).send(JSON.stringify(req.user));
+  };
+
+  static authenticate = () => {
+    return expressJwt({
+      algorithms: ['RS256'],
+      secret: 'my-secret',
+      requestProperty: 'auth',
+      getToken: (req: any) => {
+        if (req.headers['x-auth-token']) {
+          return req.headers['x-auth-token'];
+        }
+        return null;
+      }
+    })
+  };
+
+  static getCurrentUser = (req: any, res: any, next: any) => {
+    return Jwt.User.findById(req.auth.id, (err: Error, user: any) => {
+      if (err) {
+        next(err);
+      } else {
+        req.user = user;
+        next();
+      }
+    });
+  };
+
+  static getOne = (req: any, res: any) => {
+    const user = req.user.toObject();
+  
+    delete user['twitterProvider'];
+    delete user['__v'];
+  
+    res.json(user);
+  };
+}
