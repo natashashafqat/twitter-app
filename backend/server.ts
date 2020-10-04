@@ -1,102 +1,79 @@
-var mongoose = require('./src/mongoose');
-var passport = require('passport');
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const expressJwt = require('express-jwt');
+import { Response } from "express";
+import { Request } from "express-serve-static-core";
+import passport from 'passport';
+import express from 'express';
+import cors from 'cors';
+import * as bodyParser from 'body-parser';
+import * as request from 'request';
+import dotenv from 'dotenv';
+import { Jwt } from './src/jwt';
+import { Passport } from './src/passport';
+
 const router = express.Router();
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const request = require('request');
-const dotenv = require('dotenv');
-
 dotenv.config({path: __dirname + '/.env.development'});
+Passport();
 
-mongoose();
+const setupApp = () => {
+  const app = express();
 
-const passportConfig = require('./src/passport');
-passportConfig();
+  const corsOption = {
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    exposedHeaders: ['x-auth-token']
+  };
+  
+  app.use(cors(corsOption));
+  app.use(bodyParser.urlencoded({
+    extended: true
+  }));
+  app.use(bodyParser.json());
+  app.use('/api/v1', router);
+  
+  app.listen(4000);
+}
 
-var User = require('mongoose').model('User');
+setupApp();
 
-const app = express();
-
-const corsOption = {
-  origin: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-  exposedHeaders: ['x-auth-token']
-};
-app.use(cors(corsOption));
-
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.use(bodyParser.json());
-
-app.use('/api/v1', router);
-app.listen(4000);
-
-router.route('/health-check').get(function(req: any, res: any) {
-  res.status(200);
-  res.send('Hello World');
+router.route('/health-check').get((req: Request, res: Response) => {
+  res.status(200).send('Healthy service');
 });
-
-router.route('/callback').get(function(req: any, res: any) {
-  res.status(200);
-  res.send('Successful login');
-});
-
-const createToken = function(auth: any) {
-  return jwt.sign({
-    id: auth.id
-  }, 'my-secret',
-  {
-    expiresIn: 60 * 120
-  });
-};
-
-const generateToken = function (req: any, res: any, next: any) {
-  req.token = createToken(req.auth);
-  return next();
-};
-
-const sendToken = function (req: any, res: any) {
-  res.setHeader('x-auth-token', req.token);
-  return res.status(200).send(JSON.stringify(req.user));
-};
 
 router.route('/auth/twitter/reverse')
-  .post(function(req: any, res: any) {
+  .post((_req: Request, res: Response) => {
     request.post({
-      url: 'https://api.twitter.com/oauth/request_token',
+      uri: 'https://api.twitter.com/oauth/request_token',
       oauth: {
-        oauth_callback: "http%3A%2F%2Flocalhost%3A3000%2F",
+        callback: 'http://localhost:3000/',
         consumer_key: `${process.env.REACT_APP_OAUTH_CONSUMER_KEY}`,
         consumer_secret: `${process.env.REACT_APP_OAUTH_CONSUMER_SECRET}`
       }
-    }, function (err: any, r: any, body: any) {
+    },
+    (err: Error, _r: any, body: string) => {
       if (err) {
-        return res.send(500, { message: err.message });
+        return res.status(500).send(err.message);
       }
-
       const jsonStr = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
       res.send(JSON.parse(jsonStr));
     });
   });
 
 router.route('/auth/twitter')
-  .post((req: any, res: any, next: any) => {
+  .post((req: Request, res: Response, next: any) => {
     request.post({
-      url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
-      oauth: {
+      uri: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
+      oauth: {        
         consumer_key: `${process.env.REACT_APP_OAUTH_CONSUMER_KEY}`,
         consumer_secret: `${process.env.REACT_APP_OAUTH_CONSUMER_SECRET}`,
-        token: req.query.oauth_token
+        token: `${req.query.oauth_token}`
       },
-      form: { oauth_verifier: req.query.oauth_verifier }
-    }, function (err: any, r: any, body: any) {
+      form: {
+        oauth_verifier: req.query.oauth_verifier,
+      }
+    },
+    (err: Error, _r: any, body: string) => {
       if (err) {
-        return res.send(500, { message: err.message });
+        return res.status(500).send(err.message);
       }
 
       const bodyString = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
@@ -108,7 +85,9 @@ router.route('/auth/twitter')
 
       next();
     });
-  }, passport.authenticate('twitter-token', {session: false}), function(req: any, res: any, next: any) {
+  },
+  passport.authenticate('twitter-token', {session: false}),
+  (req: any, res: any, next: any) => {
       if (!req.user) {
         return res.send(401, 'User Not Authenticated');
       }
@@ -118,6 +97,10 @@ router.route('/auth/twitter')
       };
 
       return next();
-    }, generateToken, sendToken);
+    }, Jwt.generateToken, Jwt.sendToken);
 
-module.exports = app;
+router.route('/auth/me').get(
+  Jwt.authenticate,
+  Jwt.getCurrentUser,
+  Jwt.getOne
+);

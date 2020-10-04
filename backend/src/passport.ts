@@ -1,19 +1,16 @@
-var passport = require('passport'),
-  TwitterTokenStrategy = require('passport-twitter-token'),
-  twitterConfig = require('../twitter.config.js');
+import passport from 'passport';
+import { Jwt } from './jwt';
+const TwitterTokenStrategy = require('passport-twitter-token');
 
-var User = require('mongoose').model('User');
-
-module.exports = function () {
-
+export const Passport = () => {
   passport.use(new TwitterTokenStrategy({
-      consumerKey: `${process.env.REACT_APP_OAUTH_CONSUMER_KEY}`,
-      consumerSecret: `${process.env.REACT_APP_OAUTH_CONSUMER_SECRET}`,
-      includeEmail: true
-    },
-    function (token: any, tokenSecret: any, profile: any, done: any) {
-      User.upsertTwitterUser(token, tokenSecret, profile, function(err: any, user: any) {
-        return done(err, user);
-      });
-    }));
-};
+    consumerKey: `${process.env.REACT_APP_OAUTH_CONSUMER_KEY}`,
+    consumerSecret: `${process.env.REACT_APP_OAUTH_CONSUMER_SECRET}`,
+    includeEmail: true
+  },
+  function (token: any, tokenSecret: any, profile: any, done: any) {
+    Jwt.User.upsertTwitterUser(token, tokenSecret, profile, function(err: any, user: any) {
+      return done(err, user);
+    });
+  }));
+}

@@ -1,5 +1,5 @@
 {
-  "name": "test",
+  "name": "twitter-backend",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -29,7 +29,8 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "backend": "nodemon server.ts"
+    "mongo": "mongod --dbpath=/Users/natasha.mulla/data/db",
+    "backend": "npm run mongo & nodemon ./server.ts"
   },
   "eslintConfig": {
     "extends": "react-app",
