@@ -1,8 +1,12 @@
-import mongoose from 'mongoose';
-const Schema = mongoose.Schema;
+import mongoose, { Schema } from 'mongoose';
+import dotenv from 'dotenv';
+import path from 'path';
+import { PassportProfile } from './interfaces/PassportProfile';
+
+dotenv.config({path: path.join(__dirname, '../.env.development')});
 
 export const Mongoose = () => {
-  const db = mongoose.connect('mongodb://localhost:27017/twitter-demo');
+  const db = mongoose.connect(`${process.env.REACT_APP_MONGO_URL}`);
 
   const UserSchema = new Schema({
     email: {
@@ -21,24 +25,23 @@ export const Mongoose = () => {
 
   UserSchema.set('toJSON', {getters: true, virtuals: true});
 
-  UserSchema.statics.upsertTwitterUser = function(token: any, tokenSecret: any, profile: any, cb: any) {
-    const that = this;
-    return this.findOne({
+  UserSchema.statics.upsertTwitterUser = function(token: string, tokenSecret: string, profile: PassportProfile, cb: any) {
+    this.findOne({
       'twitterProvider.id': profile.id
-    }, function(err: any, user: any) {
+    }, (err: any, user: any) => {
       if (!user) {
-        const newUser = new that({
+        const newUser = new this({
           email: profile.emails[0].value,
           twitterProvider: {
             id: profile.id,
-            token: token,
-            tokenSecret: tokenSecret
+            token,
+            tokenSecret
           }
         });
 
-        newUser.save(function(error: any, savedUser: any) {
+        newUser.save((error: Error, savedUser: any) => {
           if (error) {
-            console.log(error);
+            console.log(error.message);
           }
           return cb(error, savedUser);
         });
