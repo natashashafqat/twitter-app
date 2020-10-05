@@ -42,9 +42,9 @@ router.route('/health-check').get((req: Request, res: Response) => {
 router.route('/auth/twitter/reverse')
   .post((_req: Request, res: Response) => {
     request.post({
-      uri: 'https://api.twitter.com/oauth/request_token',
+      uri: `${process.env.REACT_APP_REQUEST_TOKEN_URL}`,
       oauth: {
-        callback: 'http://localhost:3000/',
+        callback: `${process.env.REACT_APP_CALLBACK_URL}`,
         consumer_key: `${process.env.REACT_APP_OAUTH_CONSUMER_KEY}`,
         consumer_secret: `${process.env.REACT_APP_OAUTH_CONSUMER_SECRET}`
       }
@@ -61,7 +61,7 @@ router.route('/auth/twitter/reverse')
 router.route('/auth/twitter')
   .post((req: Request, res: Response, next: any) => {
     request.post({
-      uri: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
+      uri: `${process.env.REACT_APP_OAUTH_VERIFIER_URL}`,
       oauth: {        
         consumer_key: `${process.env.REACT_APP_OAUTH_CONSUMER_KEY}`,
         consumer_secret: `${process.env.REACT_APP_OAUTH_CONSUMER_SECRET}`,

@@ -1,4 +1,5 @@
 import passport from 'passport';
+import { PassportProfile } from './interfaces/PassportProfile';
 import { Jwt } from './jwt';
 const TwitterTokenStrategy = require('passport-twitter-token');
 
@@ -8,8 +9,8 @@ export const Passport = () => {
     consumerSecret: `${process.env.REACT_APP_OAUTH_CONSUMER_SECRET}`,
     includeEmail: true
   },
-  function (token: any, tokenSecret: any, profile: any, done: any) {
-    Jwt.User.upsertTwitterUser(token, tokenSecret, profile, function(err: any, user: any) {
+  (token: string, tokenSecret: string, profile: PassportProfile, done: any) => {
+    Jwt.User.upsertTwitterUser(token, tokenSecret, profile, (err: any, user: any) => {
       return done(err, user);
     });
   }));
